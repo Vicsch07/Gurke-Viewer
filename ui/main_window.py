@@ -1,10 +1,10 @@
 ## IMPORTS & PACKAGES ##
 
-import sys
 from typing import TypedDict
 
 from PySide6.QtWidgets import (
-    QApplication, QPushButton, QMainWindow, QLabel, QToolBar, QVBoxLayout, QWidget, QHBoxLayout
+    QApplication, QPushButton, QMainWindow, QLabel, QVBoxLayout,
+      QWidget, QHBoxLayout, QSizePolicy, QSplitter
 )
 
 from PySide6.QtCore import (
@@ -21,9 +21,8 @@ from states import state_manager
 from ui.utils import (
     ui_position
 )
-from ui.elements import (
-    topbar
-)
+from ui.elements.file_explorer import FileExplorer
+
 
 ## MAIN PROGRAM ##
 
@@ -51,6 +50,17 @@ class WindowSettings(TypedDict):
 # Main Class
 class GurkeViewer(QMainWindow):
 
+    def _create_topbar_button(self, text: str) -> QPushButton:
+        button = QPushButton(text)
+        button.setFixedWidth(40)
+        button.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Expanding)
+
+
+        return button
+    
+    def _add_widget_to_topbar(self, widget: QWidget) -> None:
+        self.topbar_horizontal_layout.addWidget(widget)
+
     def InitializeGurkeViewer(self):
         ## WINDOW INIT ##
 
@@ -68,9 +78,11 @@ class GurkeViewer(QMainWindow):
             
         self.center_on_screen()
 
-
+        ## Show Screen
         self.show()
         
+        ## WIDGETS SETUP ##
+
         self.central_widget = QWidget()
         self.setCentralWidget(self.central_widget)
         
@@ -78,47 +90,89 @@ class GurkeViewer(QMainWindow):
         self.main_layout.setContentsMargins(0, 0, 0, 0)
         self.main_layout.setSpacing(0)
         
-        # We align top so the topbar stays at the top
+        ## Topbar stays at top
         self.main_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
 
+        ## Topbar Creation
         self.topbar = QWidget()
+        self.topbar.setFixedHeight(40)
         self.topbar.setStyleSheet("""
-            QWidget {
-                background-color: #FF00FF; /* Bright Magenta */
-                border: 4px solid #00FF00; /* Bright Green Border */
-            }
+
             QPushButton {
-                background-color: #FFFF00; /* Bright Yellow Button */
-                color: #000000;            /* Black Text */
-                font-weight: bold;
-                border: 2px solid #FF0000; /* Red Border around Button */
-                padding: 5px;
+                background: transparent;
+                border-radius: 0px;
             }
-        """)
-        self.topbar_horizontal_layout = QHBoxLayout(self.topbar)
-        self.topbar_horizontal_layout.setContentsMargins(15, 0, 15, 0)
-        self.topbar_horizontal_layout.setSpacing(10)
+            
 
-        self.debug_label = QLabel("DEBUG: TOPBAR IS VISIBLE")
-        
-        # Make it highly visible with a dark background, white text, and a cyan border
-        self.debug_label.setStyleSheet("""
-            background-color: #333333;
-            color: #FFFFFF;
-            font-weight: bold;
-            font-size: 14px;
-            padding: 8px;
-            border: 2px dashed #00FFFF;
         """)
-        
-        # Center the text inside the label
-        self.debug_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        
-        # Add the label to your topbar's horizontal layout
-        self.topbar_horizontal_layout.addWidget(self.debug_label)
 
-        # Add the topbar to the main layout
+       
+        ## Layout
+        self.topbar_horizontal_layout = QHBoxLayout(self.topbar) # parent of topbar
+        self.topbar_horizontal_layout.setContentsMargins(5, 7, 15, 7) # y, top, x, bottom
+        self.topbar_horizontal_layout.setSpacing(0) # idk
+
+        ## Topbar Items
+        self.topbar_undo_button = self._create_topbar_button("<")
+
+        self.topbar_redo_button = self._create_topbar_button(">")
+
+        self.topbar_elevate_button = self._create_topbar_button("^")
+
+
+        ## Add Items to Topbar
+        self._add_widget_to_topbar(self.topbar_undo_button)
+        self._add_widget_to_topbar(self.topbar_redo_button)
+        self._add_widget_to_topbar(self.topbar_elevate_button)
+
+        ## Push everything to the left, -> undo_button, redo_button, elevate_button, refresh_button
+        self.topbar_horizontal_layout.addStretch()
+
+       
+
+        
+
+        ## Add the topbar to the main layout
         self.main_layout.addWidget(self.topbar)
+
+         ## Make everything under the topbar correctly sized & positioned:
+
+        self.body_splitter = QSplitter(Qt.Orientation.Horizontal)
+
+        ## FileExplorer View ##
+
+        self.file_explorer = FileExplorer(self)
+        self.body_splitter.addWidget(self.file_explorer)
+
+        ## Content View Setup ##
+
+        self.content_view = QWidget()
+        self.content_view.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+
+        ## DEBUG:
+
+        self.content_view.setStyleSheet("background-color: #ffffff")
+        
+        ## Add the Content View to body layout
+        self.body_splitter.addWidget(self.content_view)
+
+        ## Metadata Viewer Setup ##
+
+        self.meta_view = QWidget()
+        self.meta_view.setSizePolicy(QSizePolicy.Policy.Expanding, QSizePolicy.Policy.Expanding)
+        self.meta_view.setMaximumWidth(300)
+
+        ## DEBUG:
+
+        self.meta_view.setStyleSheet("background-color: #ffffff")
+
+        ## Add the Meta View to body layout
+        self.body_splitter.addWidget(self.meta_view)
+        
+        self.main_layout.addWidget(self.body_splitter)
+        
+
+
         
 
     def center_on_screen(self):
@@ -170,7 +224,7 @@ def CreateWindow(WindowSettings: WindowSettingsOverrides) -> GurkeViewer:
 
 
 def main():
-    app = QApplication(sys.argv)
+    app = QApplication([])
 
     # First Window:
 
