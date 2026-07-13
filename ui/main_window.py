@@ -4,7 +4,7 @@ from typing import TypedDict
 
 from PySide6.QtWidgets import (
     QApplication, QPushButton, QMainWindow, QLabel, QVBoxLayout,
-      QWidget, QHBoxLayout, QSizePolicy, QSplitter
+      QWidget, QHBoxLayout, QSizePolicy, QSplitter, QFrame
 )
 
 from PySide6.QtCore import (
@@ -119,14 +119,26 @@ class GurkeViewer(QMainWindow):
 
         self.topbar_elevate_button = self._create_topbar_button("^")
 
+        self.topbar_refresh_button = self._create_topbar_button("R")
 
         ## Add Items to Topbar
         self._add_widget_to_topbar(self.topbar_undo_button)
         self._add_widget_to_topbar(self.topbar_redo_button)
         self._add_widget_to_topbar(self.topbar_elevate_button)
+        self._add_widget_to_topbar(self.topbar_refresh_button)
 
         ## Push everything to the left, -> undo_button, redo_button, elevate_button, refresh_button
+        
+        self.topbar_vline = QFrame()
+        self.topbar_vline.setFrameShape(QFrame.Shape.VLine)
+        self.topbar_vline.setFrameShadow(QFrame.Shadow.Sunken)
+        self.topbar_vline.setFixedWidth(2)
+        self.topbar_horizontal_layout.addWidget(self.topbar_vline)
+
         self.topbar_horizontal_layout.addStretch()
+        self.open_file_button = QPushButton("Open File")
+
+        self.topbar_horizontal_layout.addWidget(self.open_file_button)
 
        
 
