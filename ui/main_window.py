@@ -21,10 +21,17 @@ from states import state_manager
 from ui.utils import (
     ui_position
 )
-from ui.elements.file_explorer import FileExplorer
+from ui.elements.FileExplorer.file_explorer import FileExplorer
+from ui.classes.CQPushButton import CQPushButton
 
 
 ## MAIN PROGRAM ##
+
+## CONSTANTS ##
+
+# TODO: Move below to settings.ini
+
+WINDOW_ENABLE_MIN_WINDOW_SIZE = True
 
 ## STYLESHEET ##
 
@@ -50,8 +57,9 @@ class WindowSettings(TypedDict):
 # Main Class
 class GurkeViewer(QMainWindow):
 
+
     def _create_topbar_button(self, text: str) -> QPushButton:
-        button = QPushButton(text)
+        button = CQPushButton(text)
         button.setFixedWidth(40)
         button.setSizePolicy(QSizePolicy.Policy.Fixed, QSizePolicy.Policy.Expanding)
 
@@ -79,6 +87,13 @@ class GurkeViewer(QMainWindow):
         self.center_on_screen()
 
         ## Show Screen
+        #self.setWindowFlag(Qt.WindowType.FramelessWindowHint) # Frameless Window
+        
+        if WINDOW_ENABLE_MIN_WINDOW_SIZE:
+            ## TODO: Make this dynamic with the screen size, to enable for 4 windows in screen
+            self.setMinimumWidth(162 + 300 + 100)
+            self.setMinimumHeight(400)
+        
         self.show()
         
         ## WIDGETS SETUP ##
@@ -102,6 +117,8 @@ class GurkeViewer(QMainWindow):
                 background: transparent;
                 border-radius: 0px;
             }
+                                  
+             
             
 
         """)
